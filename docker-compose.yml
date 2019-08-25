@@ -1,0 +1,39 @@
+version: '3'
+services:
+  mongo:
+    image: mongo:latest
+    container_name: "mongo"
+    environment:
+      - MONGO_INITDB_ROOT_USERNAME=root
+      - MONGO_INITDB_ROOT_PASSWORD=admin
+      - MONGO_INITDB_DATABASE=nodeJS_raspberry_pi
+    ports:
+      - 27017:27017
+    networks:
+      - code-network
+    volumes:
+      - ./mongo/init-users.js:/docker-entrypoint-initdb.d/init-users.js:ro
+      - ./mongo/data:/data/db
+      - ./mongo/data:/home/mongodb/
+    command: mongod --auth
+    restart: always
+  nodejs:
+    build: nodejs
+    container_name: "nodejs"
+    ports:
+      - "8080:8080"
+    environment:
+      - MONGODB_URI=mongodb://root:admin@mongo:27017/nodeJS_raspberry_pi
+    volumes:
+      - ../nodejs_raspberry_pi:/data/nodeJS_raspberry_pi
+    depends_on:
+      - mongo
+    networks:
+      - code-network
+    restart: always
+volumes:
+  mongodb:
+  mongoconfig:
+networks:
+  code-network:
+    driver: bridge
